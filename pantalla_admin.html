@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: lightgray;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            position: relative;
+        }
+
+        #informacion {
+            margin-top: 20px;
+            padding: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #contenedor-espera,
+        #contenedor-aceptados {
+            margin-top: 20px;
+        }
+
+        .formulario-info {
+            margin-bottom: 20px;
+        }
+
+        .acciones-formulario {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+
+        .accion {
+            background-color: #3498db; /* Azul */
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #cerrar-sesion {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6347; /* Rojo */
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #formulario-editar {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #formulario-editar form {
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="informacion">
+        <h2>Lista de Espera</h2>
+        <div id="contenedor-espera"></div>
+
+        <hr>
+
+        <h2>Formularios Aceptados</h2>
+        <div id="contenedor-aceptados"></div>
+    </div>
+
+    <div id="formulario-editar">
+        <h2>Editar Formulario</h2>
+        <form onsubmit="guardarEdicion(event)">
+            <input type="hidden" id="index-editar" name="index-editar" value="">
+            <!-- Campos del formulario de edición aquí -->
+            <button type="button" onclick="cancelarEdicion()">Cancelar</button>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+
+    <button id="cerrar-sesion" onclick="cerrarSesion()">
+        <i class="fas fa-power-off"></i> Cerrar Sesión
+    </button>
+
+    <script>
+        function obtenerTodosLosFormularios() {
+            const formularios = JSON.parse(localStorage.getItem('formularios')) || [];
+            return formularios;
+        }
+
+        function obtenerFormulariosAceptados() {
+            const formulariosAceptados = JSON.parse(localStorage.getItem('formulariosAceptados')) || [];
+            return formulariosAceptados;
+        }
+
+        function mostrarInformacionFormularios() {
+            const formularios = obtenerTodosLosFormularios();
+            const formulariosAceptados = obtenerFormulariosAceptados();
+            const contenedorEspera = document.getElementById('contenedor-espera');
+            const contenedorAceptados = document.getElementById('contenedor-aceptados');
+
+            contenedorEspera.innerHTML = '';
+            contenedorAceptados.innerHTML = '';
+
+            function mostrarFormulario(formulario, index, contenedor) {
+                const formularioDiv = document.createElement('div');
+                formularioDiv.className = 'formulario-info';
+
+                formularioDiv.innerHTML += `<p><strong>Formulario ${index + 1}</strong></p>`;
+
+                for (const key in formulario) {
+                    if (formulario.hasOwnProperty(key)) {
+                        formularioDiv.innerHTML += `<p>${key}: ${formulario[key]}</p>`;
+                    }
+                }
+
+                const accionesDiv = document.createElement('div');
+                accionesDiv.className = 'acciones-formulario';
+
+                const aceptarBoton = document.createElement('button');
+                aceptarBoton.className = 'accion';
+                aceptarBoton.innerText = 'Aceptar';
+                aceptarBoton.onclick = function() {
+                    // Mover a formularios aceptados
+                    const formularios = obtenerTodosLosFormularios();
+                    const formularioAceptado = formularios.splice(index, 1)[0];
+                    const formulariosAceptados = obtenerFormulariosAceptados();
+                    formulariosAceptados.push(formularioAceptado);
+                    localStorage.setItem('formularios', JSON.stringify(formularios));
+                    localStorage.setItem('formulariosAceptados', JSON.stringify(formulariosAceptados));
+                    // Actualizar la visualización
+                    mostrarInformacionFormularios();
+                    alert('Formulario aceptado');
+                };
+
+                const rechazarBoton = document.createElement('button');
+                rechazarBoton.className = 'accion';
+                rechazarBoton.innerText = 'Rechazar';
+                rechazarBoton.onclick = function() {
+                    // Eliminar formulario
+                    const formularios = obtenerTodosLosFormularios();
+                    formularios.splice(index, 1);
+                    localStorage.setItem('formularios', JSON.stringify(formularios));
+                    // Actualizar la visualización
+                    mostrarInformacionFormularios();
+                    alert('Formulario rechazado y eliminado');
+                };
+
+                const modificarBoton = document.createElement('button');
+                modificarBoton.className = 'accion';
+                modificarBoton.innerText = 'Modificar';
+                modificarBoton.onclick = function() {
+                    // Mostrar formulario de edición con los datos actuales
+                    mostrarFormularioEditar(formulario, index);
+                };
+
+                accionesDiv.appendChild(aceptarBoton);
+                accionesDiv.appendChild(rechazarBoton);
+                accionesDiv.appendChild(modificarBoton);
+
+                formularioDiv.appendChild(accionesDiv);
+                contenedor.appendChild(formularioDiv);
+            }
+
+            formularios.forEach((formulario, index) => {
+                mostrarFormulario(formulario, index, contenedorEspera);
+            });
+
+            formulariosAceptados.forEach((formulario, index) => {
+                const formularioDiv = document.createElement('div');
+                formularioDiv.className = 'formulario-info';
+
+                formularioDiv.innerHTML += `<p><strong>Formulario Aceptado ${index + 1}</strong></p>`;
+
+                for (const key in formulario) {
+                    if (formulario.hasOwnProperty(key)) {
+                        formularioDiv.innerHTML += `<p>${key}: ${formulario[key]}</p>`;
+                    }
+                }
+
+                contenedorAceptados.appendChild(formularioDiv);
+            });
+        }
+
+        function mostrarFormularioEditar(formulario, index) {
+            const formularioEditarDiv = document.getElementById('formulario-editar');
+            formularioEditarDiv.style.display = 'block';
+
+            const formEditar = formularioEditarDiv.querySelector('form');
+            formEditar.innerHTML = ''; // Limpiar contenido previo
+
+            // Agregar un campo oculto para almacenar el índice del formulario a editar
+            const indexEditarInput = document.createElement('input');
+            indexEditarInput.setAttribute('type', 'hidden');
+            indexEditarInput.setAttribute('id', 'index-editar');
+            indexEditarInput.setAttribute('name', 'index-editar');
+            indexEditarInput.setAttribute('value', index);
+            formEditar.appendChild(indexEditarInput);
+
+            for (const key in formulario) {
+                if (formulario.hasOwnProperty(key)) {
+                    const label = document.createElement('label');
+                    label.setAttribute('for', key);
+                    label.innerText = `${key}:`;
+
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'text');
+                    input.setAttribute('id', key);
+                    input.setAttribute('name', key);
+                    input.setAttribute('value', formulario[key]);
+                    input.setAttribute('required', '');
+
+                    formEditar.appendChild(label);
+                    formEditar.appendChild(input);
+                    formEditar.appendChild(document.createElement('br'));
+                }
+            }
+
+            const cancelarBoton = document.createElement('button');
+            cancelarBoton.setAttribute('type', 'button');
+            cancelarBoton.innerText = 'Cancelar';
+            cancelarBoton.onclick = function() {
+                cancelarEdicion();
+            };
+
+            const guardarBoton = document.createElement('button');
+            guardarBoton.setAttribute('type', 'submit');
+            guardarBoton.innerText = 'Guardar';
+
+            formEditar.appendChild(cancelarBoton);
+            formEditar.appendChild(guardarBoton);
+        }
+
+        function guardarEdicion(event) {
+            event.preventDefault();
+
+            const formularioEditarDiv = document.getElementById('formulario-editar');
+            const formEditar = formularioEditarDiv.querySelector('form');
+
+            // Obtener el índice del formulario a editar
+            const index = parseInt(formEditar.querySelector('input[name="index-editar"]').value);
+
+            // Obtener todos los formularios en espera
+            const formularios = obtenerTodosLosFormularios();
+
+            // Actualizar los datos del formulario en espera con los nuevos datos
+            for (const key in formularios[index]) {
+                if (formularios[index].hasOwnProperty(key)) {
+                    formularios[index][key] = formEditar.querySelector(`input[name="${key}"]`).value;
+                }
+            }
+
+            // Guardar los formularios actualizados en el localStorage
+            localStorage.setItem('formularios', JSON.stringify(formularios));
+
+            // Ocultar el formulario de edición y mostrar la información actualizada
+            formularioEditarDiv.style.display = 'none';
+            mostrarInformacionFormularios();
+
+            alert('Formulario editado correctamente');
+        }
+
+        function cancelarEdicion() {
+            const formularioEditarDiv = document.getElementById('formulario-editar');
+            formularioEditarDiv.style.display = 'none';
+        }
+
+        // Llamar a la función para mostrar información al cargar la página
+        mostrarInformacionFormularios();
+
+        function cerrarSesion() {
+            alert('Sesión cerrada');
+            window.location.href = 'inicia_sesion.html';
+        }
+    </script>
+</body>
+</html>

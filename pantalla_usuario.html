@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Usuario</title>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/confirmDate/confirmDate.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/flatpickr.time.js"></script>
+    <script src="scripts/localStorageHandler.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_green.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: lightblue;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            position: relative;
+        }
+
+        #sms {
+            font-size: 24px;
+            color: #00cc00; /* verde */
+            margin-top: 20px;
+        }
+
+        #opciones {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .opcion {
+            padding: 10px;
+            background-color: #00cc00; /* verde */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+        #formulario-cotizacion,
+        #formulario-compra-plantas,
+        #formulario-mantenimiento {
+            display: none;
+            margin-top: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .flatpickr-calendar,
+        .flatpickr-time {
+            z-index: 9999 !important;
+        }
+
+        #boton-flotante {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #00cc00; /* verde */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #cerrar-sesion {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6347; /* rojo */
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sms">SMS</div>
+
+    <div id="opciones">
+        <a href="#" class="opcion" onclick="mostrarFormulario('cotizacion')">Cotización</a>
+        <a href="#" class="opcion" onclick="mostrarFormulario('compra-plantas')">Compra de Plantas</a>
+        <a href="#" class="opcion" onclick="mostrarFormulario('mantenimiento')">Mantenimiento</a>
+    </div>
+
+    <div id="formulario-cotizacion">
+        <form onsubmit="enviarFormularioCotizacion(event)">
+            <label for="nombre">Nombre Completo:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" id="ubicacion" name="ubicacion" required><br>
+
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono" required><br>
+
+            <label for="fecha-hora">Fecha y Hora:</label>
+            <input type="text" id="fecha-hora" name="fecha-hora" required><br>
+
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" rows="4" required></textarea><br>
+
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <div id="formulario-compra-plantas">
+        <form onsubmit="enviarFormularioCompraPlantas(event)">
+            <label for="nombre-completo">Nombre Completo:</label>
+            <input type="text" id="nombre-completo" name="nombre-completo" required><br>
+
+            <label for="tipo-plantas">Tipo de Plantas:</label>
+            <select id="tipo-plantas" name="tipo-plantas" required>
+                <option value="flores">Flores</option>
+                <option value="arboles">Árboles</option>
+                <option value="sustentas">Sustentas</option>
+                <option value="otros">Otros</option>
+            </select><br>
+
+            <label for="nombre-planta">Nombre de la Planta:</label>
+            <input type="text" id="nombre-planta" name="nombre-planta" required><br>
+
+            <label for="telefono-compra">Teléfono:</label>
+            <input type="tel" id="telefono-compra" name="telefono-compra" required><br>
+
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <div id="formulario-mantenimiento">
+        <form onsubmit="enviarFormularioMantenimiento(event)">
+            <label for="nombre-mantenimiento">Nombre Completo:</label>
+            <input type="text" id="nombre-mantenimiento" name="nombre-mantenimiento" required><br>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" name="direccion" required><br>
+
+            <label for="numero-casa">Número de Casa:</label>
+            <input type="text" id="numero-casa" name="numero-casa" required><br>
+
+            <label for="telefono-mantenimiento">Teléfono:</label>
+            <input type="tel" id="telefono-mantenimiento" name="telefono-mantenimiento" required><br>
+
+            <label for="fecha-hora-mantenimiento">Fecha y Hora:</label>
+            <input type="text" id="fecha-hora-mantenimiento" name="fecha-hora-mantenimiento" required><br>
+
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <button id="boton-flotante" onclick="marcarTelefono()">
+        <i class="fas fa-phone"></i>
+    </button>
+
+    <button id="cerrar-sesion" onclick="cerrarSesion()">
+        <i class="fas fa-power-off"></i> Cerrar Sesión
+    </button>
+
+    <script>
+        function mostrarFormulario(opcion) {
+            document.getElementById('formulario-cotizacion').style.display = opcion === 'cotizacion' ? 'block' : 'none';
+            document.getElementById('formulario-compra-plantas').style.display = opcion === 'compra-plantas' ? 'block' : 'none';
+            document.getElementById('formulario-mantenimiento').style.display = opcion === 'mantenimiento' ? 'block' : 'none';
+
+            if (opcion === 'cotizacion') {
+                inicializarCalendarioCotizacion();
+            } else if (opcion === 'mantenimiento') {
+                inicializarCalendarioMantenimiento();
+            }
+        }
+
+        function enviarFormularioCotizacion(event) {
+            event.preventDefault();
+            alert('Formulario de cotización enviado correctamente. Nos pondremos en contacto pronto.');
+
+            // Guardar el formulario en localStorage
+            const formularioCotizacion = {
+                tipo: 'cotizacion',
+                nombre: document.getElementById('nombre').value,
+                ubicacion: document.getElementById('ubicacion').value,
+                telefono: document.getElementById('telefono').value,
+                fechaHora: document.getElementById('fecha-hora').value,
+                descripcion: document.getElementById('descripcion').value
+            };
+
+            const formularios = obtenerTodosLosFormularios();
+            formularios.push(formularioCotizacion);
+            localStorage.setItem('formularios', JSON.stringify(formularios));
+        }
+
+        function enviarFormularioCompraPlantas(event) {
+            event.preventDefault();
+            alert('Formulario de compra de plantas enviado correctamente. Un agente se pondrá en contacto pronto.');
+
+            // Guardar el formulario en localStorage
+            const formularioCompraPlantas = {
+                tipo: 'compra-plantas',
+                nombreCompleto: document.getElementById('nombre-completo').value,
+                tipoPlantas: document.getElementById('tipo-plantas').value,
+                nombrePlanta: document.getElementById('nombre-planta').value,
+                telefonoCompra: document.getElementById('telefono-compra').value
+            };
+
+            const formularios = obtenerTodosLosFormularios();
+            formularios.push(formularioCompraPlantas);
+            localStorage.setItem('formularios', JSON.stringify(formularios));
+        }
+
+        function enviarFormularioMantenimiento(event) {
+            event.preventDefault();
+            alert('Formulario de mantenimiento enviado correctamente. Un agente se pondrá en contacto pronto.');
+
+            // Guardar el formulario en localStorage
+            const formularioMantenimiento = {
+                tipo: 'mantenimiento',
+                nombreCompleto: document.getElementById('nombre-mantenimiento').value,
+                direccion: document.getElementById('direccion').value,
+                numeroCasa: document.getElementById('numero-casa').value,
+                telefonoMantenimiento: document.getElementById('telefono-mantenimiento').value,
+                fechaHoraMantenimiento: document.getElementById('fecha-hora-mantenimiento').value
+            };
+
+            const formularios = obtenerTodosLosFormularios();
+            formularios.push(formularioMantenimiento);
+            localStorage.setItem('formularios', JSON.stringify(formularios));
+        }
+
+        function inicializarCalendarioCotizacion() {
+            flatpickr("#fecha-hora", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: "es",
+                plugins: [new confirmDatePlugin({})]
+            });
+        }
+
+        function inicializarCalendarioMantenimiento() {
+            flatpickr("#fecha-hora-mantenimiento", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                locale: "es",
+                plugins: [new confirmDatePlugin({})]
+            });
+        }
+
+        function marcarTelefono() {
+            window.location.href = 'tel:+50762968776';
+        }
+
+        function cerrarSesion() {
+            alert('Sesión cerrada');
+            window.location.href = 'inicia_sesion.html';
+        }
+
+        // Función para obtener todos los formularios guardados en localStorage
+        function obtenerTodosLosFormularios() {
+            const formularios = JSON.parse(localStorage.getItem('formularios')) || [];
+            return formularios;
+        }
+    </script>
+</body>
+</html>
